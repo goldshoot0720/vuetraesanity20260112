@@ -39,7 +39,8 @@
               {{ audio.label }}
             </button>
           </div>
-          <audio :src="selectedLyric.audios[currentAudioIndex].url" controls autoplay class="audio-control"></audio>
+          <audio v-if="selectedLyric.audios[currentAudioIndex].url" :src="selectedLyric.audios[currentAudioIndex].url" controls autoplay class="audio-control"></audio>
+          <div v-else class="no-audio-message">（此版本暫無音檔，僅供歌詞瀏覽）</div>
         </div>
 
         <div class="lyrics-text">
@@ -214,6 +215,118 @@ const lyricsList = ref([
   },
   { 
     name: '史上最瞎結婚理由', 
+    audios: [
+      {
+        label: '中文版',
+        url: 'https://api.stormkit.io/volumes/file/yN2rDWvqYI4UIFcJi6z0UPbqT0jX5zIQjYyf2jq5rElsYsL5Lw==',
+        lyrics: `Intro（標註） 
+ 鋒兄啊你說真的還假的 
+ 塗哥聽了都快笑翻了 
+
+ Verse 1（標註） 
+ 鋒兄說要結婚理由只有一個 
+ 今彩五三九開獎那天 
+ 頭獎號碼是思敏給的 
+ 看著獎金直直落心也跟著被收編 
+
+ Chorus（標註） 
+ 史上最瞎結婚理由 
+ 今彩五三九牽紅線牽這麼兇 
+ 一個思敏一個蕙瑄 
+ 號碼一簽兩人都中頭獎圈 
+
+ Bridge（標註） 
+ 愛情是運氣還是數學題 
+ 笑到哭都只能說一句 
+ 最瞎最瞎但又有點甜蜜 
+
+ Outro（標註） 
+ 鋒兄牽著思敏塗哥牽著蕙瑄 
+ 喝喜酒的人一桌一桌還在笑這兩段緣 
+ 最瞎結婚理由結果都開成頭獎 
+ 如果幸福也能這樣瞎忙 
+ 那我明天也去買一張`
+      },
+      {
+        label: '英文版',
+        url: 'https://api.stormkit.io/volumes/file/izdJCf5J_QfS-NsfGL-u43YJ623K5QSQ-fi3kdzqkWY8fsCs-A==',
+        lyrics: `Intro 
+ Brother Feng, are you serious or joking? 
+ Brother Tu is laughing so hard 
+ 
+ Verse 1 
+ Brother Feng says there's only one reason to marry 
+ On the day of the lottery draw 
+ The winning numbers were given by Simin 
+ Watching the jackpot fall, his heart was captured too 
+ 
+ Chorus 
+ The most ridiculous reason to marry 
+ The lottery brought them together so strong 
+ One Simin, one Huixuan 
+ Both won the jackpot with their numbers 
+ 
+ Outro 
+ Brother Feng with Simin, Brother Tu with Huixuan 
+ Wedding guests laughing at these two stories 
+ Most ridiculous marriage reasons turned into jackpots 
+ If happiness can be this absurd 
+ Then I'll buy a ticket tomorrow too`
+      },
+      {
+        label: '日語版',
+        url: 'https://api.stormkit.io/volumes/file/_Ouvryy2-NonpXyszj3muosCbgiuKkh0FCnB4etiGzlm5g3_Ng==',
+        lyrics: `Intro 
+ 鋒兄、マジで？ウソでしょ？ 
+ 塗哥は聞いてて笑いが止まらないよ 
+ 
+ Verse 1 
+ 鋒兄は言う、結婚理由は一つだけ 
+ 今彩539の抽選日 
+ 一等番号は思敏がくれた 
+ 賞金を見て、心まで奪われて 
+ 
+ Chorus 
+ 史上最も馬鹿げた結婚理由 
+ 今彩539が結んだ赤い糸がこんなに強い 
+ 一人は思敏、一人は蕙瑄 
+ 番号一つで二人とも一等当選 
+ 
+ Outro 
+ 鋒兄は思敏を連れ、塗哥は蕙瑄を連れ 
+ 披露宴の客たちはテーブルごとにこの二つの縁で笑ってる 
+ 最も馬鹿げた結婚理由が一等賞に 
+ もし幸福がこんなに馬鹿げていたら 
+ 私も明日買いに行こうかな`
+      },
+      {
+        label: '粵語版',
+        url: 'https://api.stormkit.io/volumes/file/KEWUQEoSdtuYtSR_KTg4nLRIQvY-HSnN8b0Uo5qsJlx89nFe1g==',
+        lyrics: `Intro 
+ 阿鋒你講真定假 
+ 阿塗聽咗都快笑死 
+ 
+ Verse 1 
+ 阿鋒話結婚理由得一個 
+ 今期五三九攪珠嗰日 
+ 頭獎號碼係思敏畀嘅 
+ 睇住獎金跌落心都一齊俾收編 
+ 
+ Chorus 
+ 史上最瞎結婚理由 
+ 今期五三九紅線牽得幾狠 
+ 一個思敏一個蕙瑄 
+ 號碼一簽兩個都中頭獎圈 
+ 
+ Outro 
+ 阿鋒拉住思敏阿塗拉住蕙瑄 
+ 飲喜酒嘅人一桌一桌 
+ 仲係笑緊呢兩段緣 
+ 最瞎結婚理由結果都開成頭獎 
+ 如果幸福都可以咁瞎忙 
+ 咁我聽日都去買一張`
+      }
+    ],
     content: `Intro（標註） 
  鋒兄啊你說真的還假的 
  塗哥聽了都快笑翻了 
@@ -244,33 +357,128 @@ const lyricsList = ref([
   },
   { 
     name: '塗哥水電王子爆紅', 
-    content: `故事開始（標註） 
+    audios: [
+      {
+        label: '中文版',
+        url: 'https://api.stormkit.io/volumes/file/XBssuVRKo5m6MqWyZRoyWWcHhms5Zcb2_Cfw3ihs2cIAWO1BBQ==',
+        lyrics: `故事開始（標註） 
  西元兩零零四年六月十五日，這一天是國中畢業生可以在畢業紀念冊留下紀念簽名的一天，同時也是我們故事主角塗神：塗三傑――江湖人稱塗哥一切的開始。 
-
+ 
  台中小吃店對話（標註） 
  塗哥人在台中小吃店，同行（姓同名行，塗哥師傅）指著電視畫面說台北爆發學運太陽花學運，塗哥說我不懂政治，等一下我們去買太陽餅。我聽鋒兄說彰化盛產向日葵，下個月我們去彰化農場踏青，同行職業病發作對農場施工頭頭是道。 
-
+ 
  鋒兄歷史小學堂（標註） 
  鋒兄歷史小學堂林學徒說AI機器人有可能取代水電工，我好焦慮喔，塗哥說可是我聽鋒兄說那是未來不是現在，先作好手邊的工作，當一天和尚撞一天鐘。 
-
+ 
  副市長同學（標註） 
  塗哥說我有個同學在台北當副市長，同行回你是說鋒兄嗎，鋒兄？！怎麼可能，鋒兄現在是青木瓜手搖飲區域經理，副市長是黃馨鋒，同行說我還以為是鋒兄，一樣名字有個鋒字。對了你那同學不出來選台北市長嗎？塗哥說我同學寫了一本有關於水電工的書，他說銷售量超過兩百五十萬冊，才有出來選的本錢。 
-
+ 
  動物園快閃（標註） 
  有人在台北動物園快閃唱動物園不得了了，蠟筆小新？！塗哥說我不懂日語，等一下我們去KTV唱快樂天堂。 
-
+ 
  電視劇熱潮（標註） 
  塗董，最近的電視劇很火你有在看嗎，水電情？！聽說原型人物是塗偉傑，塗偉傑？！我叫塗三傑，姓名只差一個字，說不定是我遠房親戚，真的假的，你們塗家壟斷水電這一行業太誇張了吧。 
-
+ 
  現象級成功（標註） 
  塗董，你知道塗偉傑紅到被寫進高職國文課本這件事嗎，哇操，塗偉傑肯定是我遠房親戚，傻眼貓咪，我看鋒兄家的貓都會傻眼現象級水電工塗哥人物專訪。 
-
+ 
  衍生作品帝國（標註） 
  塗神衍生作品王子高職國文課本 水電電視劇 愛上水電工 主題曲鋒兄作詞 小說名場景 青木瓜四木飲冠名播出 鋒兄和塗哥喝青木瓜四木飲一年份喝到吐電影 水電工大老闆。 
-
+ 
  學術引用（標註） 
  學術引用 社會學系碩士論文引用 塗神水電王子 二十一世紀前期文學作品所呈現的台灣社會國文學系博士論文引用 塗神水電王子 台灣政治人物代表作家及其作品研究。 
-
+ 
+ 財富成就（標註） 
+ 塗哥水電王子爆紅 鋒兄賺三百三十三億 塗哥賺三億`
+      },
+      {
+        label: '英文版',
+        url: '',
+        lyrics: `The Beginning 
+ On June 15, 2004, this day marks when junior high school graduates could leave commemorative signatures in their yearbook, and it was also the beginning of everything for our story's protagonist, Tu Shen: Tu Sanjie, later known as Tu Ge. 
+ 
+ Conversation at Taichung Snack Shop 
+ Tu Ge was at a small snack shop in Taichung. His companion, Tong Xing (known as Tu Ge's master, same surname and name), pointed at the TV and mentioned the outbreak of the Sunflower Movement in Taipei. Tu Ge replied, "I don't understand politics; let's go buy some sun cakes." He heard from Feng Xiong that Changhua is abundant in sunflowers, and next month they planned a day trip to a farm in Changhua. Tong's occupational habits kicked in, discoursing expertly on farm construction. 
+ 
+ Feng Xiong's Little History Class 
+ Lin, the apprentice, said AI robots might replace electricians. "I'm so anxious," Lin said. Tu Ge reassured, "But I heard Feng Xiong say that's the future, not now. First, let's focus on our work at hand: take life one step at a time." 
+ 
+ The Deputy Mayor Classmate 
+ Tu Ge mentioned having a classmate who serves as deputy mayor in Taipei. Tong replied, "Are you talking about Feng Xiong?" "Feng Xiong?! That's impossible. Feng Xiong is now the regional manager of a green papaya drink franchise. The deputy mayor is Huang Xingfeng," Tong said. "I thought it was Feng Xiong; they both have 'Feng' in their names. Anyway, is your classmate not running for mayor?" Tu Ge said, "My classmate wrote a book about electricians that sold over 2.5 million copies, so he has the capability to run for office." 
+ 
+ Zoo Flash Mob 
+ Someone did a flash mob at the Taipei Zoo, singing about the zoo's wonders. "Shin-chan?!" Tu Ge said, "I don't speak Japanese; let's head to the KTV to sing 'Paradise'." 
+ 
+ TV Drama Craze 
+ Chairman Tu, have you been watching the recent hit drama? 'The Love of an Electrician?!' I heard it's based on Tu Weijie's true story. "Tu Weijie?! My name is Tu Sanjie, just one character off; he might be my distant relative. Really? Your Tu family dominating the electrician industry is outrageous!" 
+ 
+ Phenomenal Success 
+ Chairman Tu, do you know Tu Weijie's fame reached the point of being included in vocational school literature textbooks? "Holy moly, Tu Weijie must be my distant relative. Shocked like a cat. Even Feng Xiong's cat would be shocked!" 
+ 
+ Derivative Works Empire 
+ Tu Shen's Derivative Works Prince: Vocational Literature Textbooks - Electricians, TV Drama Theme Song: 'Falling in Love with an Electrician' Lyrics by Feng Xiong. Famous scenes from the novel sponsored by Papaya Fourwood Drink, Feng Xiong and Tu Ge drank a year's supply until they were sick. Film: The Electrician Tycoon. 
+ 
+ Academic Citation 
+ Academic Citation: Sociology Master's Thesis Citing "Tu Shen Electrician Prince" - Early 21st Century Literary Presentation of Taiwanese Society. Chinese Literature Ph.D. Dissertation Citing "Tu Shen Electrician Prince" - A Study of Representative Taiwanese Political Figures and Their Works. 
+ 
+ Financial Achievement 
+ Tu Ge's Phenomenal Rise: Feng Xiong made three hundred and thirty-three billion, Tu Ge made three billion`
+      },
+      {
+        label: '日語版',
+        url: '',
+        lyrics: `2004年6月15日、この日は中学校の卒業生が年鑑に記念のサインを残せる日であり、物語の主人公、塗神こと塗三杰（後に塗哥として知られる）の全ての始まりでした。塗哥は台中の小さなスナックショップにいました。彼の仲間である通行（塗哥の師匠。同じ姓と名）はテレビを指差し、台北でのひまわり運動の勃発について言及しました。 
+ 塗哥は「政治のことはよくわからない。菓子を買いに行こう」と答えました。彼は馮兄から、彰化にはひまわりがたくさんあると聞き、来月に彰化の農場への日帰り旅行を計画していました。通の職業習慣が作動し、農場建設について専門的に話し合いました。馮兄の小さな歴史クラスリンの弟子は、「ロボットが電気工を置き換えるかもしれない」と言いました。 
+ 
+ 「とても不安だ」とリンは言いました。塗哥は「でも、馮兄によれば、それは未来のことだ、今ではない。まずは手元の仕事に集中しよう。一歩ずつ生きていこう」と安心させました。塗哥は彼の同級生が台北の副市長を務めていると述べました。通は、「馮兄のことを話しているの？」と答えました。「馮兄？！それはありえない。馮兄は今、青パパイヤドリンクフランチャイズの地域担当マネージャーだ。 
+ 副市長は黄興豊だ」と通は言いました。「馮兄だと思ったけど、彼らはどちらも『豐』が名前にあるんだ。いずれにせよ、あなたの同級生は市長選に出馬しないのか？」塗哥は、「私の同級生は電気工についての本を書いて、250万部以上売れたから、政治家になる能力も持っています」と言いました。誰かが台北動物園でフラッシュモブをして、動物園の素晴らしさを歌いました。 
+ 
+ 「しんちゃん？！」塗哥は、「日本語は話せない。KTVに行って『パラダイス』を歌いに行こう」と言いました。塗会長、最近のヒットドラマをご覧になりましたか？『電気工の愛』ですか？！それは塗偉傑の真実を基にしています。「塗偉傑？！私の名前は塗三杰、あと一文字しかない。彼は私の遠い親戚かも。ほんとに？あなたの塗家が電気工業界を支配しているのはとんでもないことだ！ 
+ 」塗会長、塗偉傑の名声が職業学校の文学の教科書に載るほどになったことをご存知ですか？「おお、塗偉傑は私の親戚かもしれない。猫をびっくりさせるような衝撃。馮兄の猫もびっくり！」電気工塗哥の驚異的なインタビュー塗神の派生作品プリンス職業文学教科書 - 電気工テレビドラマ主題歌：『電気工に恋して』 作詞：馮兄。 
+ 
+ 有名なシーンはパパイヤ・フォーウッド・ドリンクの協賛で、馮兄と塗哥は1年間の供給を飲んで病気になりました。映画：電気工大君学術引用:「塗神電気工プリンス」を引用した社会学修士論文 - 21世紀初頭の台湾社会文学のプレゼンテーション中国文学の博士論文は「塗神電気工プリンス」を引用しています - 台湾の代表的な政治人物とその作品の研究塗哥の驚異的な躍進：馮兄は三千三百三十三億を稼ぎ、塗哥は三億を稼ぎました。`
+      },
+      {
+        label: '粵語版',
+        url: 'https://api.stormkit.io/volumes/file/g1JiPViTMc6aH1RRrnaNyisVCPFYA1Ti4M4mD6Yz6exPP7OXoQ==',
+        lyrics: `2004年6月15日，呢日係中學畢業生喺年鑑度留紀念簽名嘅日子，都係故仔個主角，塗神即係塗三杰（之後畀人叫塗哥）嘅一切開始。塗哥喺台中一間細細嘅零食店入面。佢嘅朋友通行（塗哥嘅師傅。同姓同名）指住電視，提到台北嘅太陽花運動爆發。塗哥話：「政治我唔係好識。不如買零食去啦。」佢從馮兄度聽到彰化有好多向日葵，計劃下個月去彰化個農場一日遊。 
+ 
+ 通職業病發作，專業咁同佢傾農場建設。馮兄嘅細歷史堂阿麟嘅徒弟話：「可能啲機械人會取代電工。」阿麟話：「真係好擔心。」塗哥就話：「不過，馮兄話，呢啲係未來果陣嘅事，宜家仲未到。好似佢講咁，專心做宜家嘅嘢，慢慢一步一腳印咁過日子。」塗哥提起佢嘅同學做緊台北嘅副市長。通問：「你講緊馮兄咩？」通話：「馮兄？！ 
+ 
+ 冇可能。馮兄而家係青木瓜汁加盟店嘅區域經理。副市長係黃興豐。」塗哥話：「我以為係馮兄，但佢哋個名都有『豐』。不過，你個同學會唔會選市長？」塗哥話：「我個同學寫咗本關於電工嘅書，賣咗過250萬本，所以佢其實都可以做個政客。」有人喺台北動物園做咗個快閃，唱咗首讚美動物園嘅歌。「新仔？！」塗哥話：「我唔識講日文。 
+ 
+ 不如去KTV唱《天堂》啦。」塗會長，最近你有冇睇過嗰齣人氣戲劇呀？就係《電工之愛》！呢齣戲係根據塗偉傑嘅故事改編。「塗偉傑？！我叫塗三杰啫，淨多個字，可能真係遠親喇。真係嗎？你哋塗家喺電工業界咁巴閉真係好夠晒威呀！」塗會長，你知唔知塗偉杰嘅名氣已經去到職業學校嘅文學課本入面呢？「哦，如果塗偉杰真係我親戚，咁咪真係夠晒轟動，連馮兄嘅貓都會嚇親！ 
+ 
+ 」塗電工嘅驚人訪問塗神嘅延伸作品王子職業文學課本：電工電視劇主題曲：《愛上電工》填詞：馮兄。有名嘅場景就係綠木瓜汁贊助，馮兄同塗哥飲到供應一年，飲到唔舒服。電影：電工大君學術引用：「塗神電工王子」出現喺社會學碩士論文入面 - 21世紀初台灣社會文學嘅呈現中國文學博士論文都有引述「塗神電工王子」 - 研究台灣嘅代表人物同佢哋嘅作品塗哥驚人嘅騰飛：馮兄賺咗三千三百三十三億，而塗哥賺咗三億。`
+      }
+    ],
+    content: `故事開始（標註） 
+ 西元兩零零四年六月十五日，這一天是國中畢業生可以在畢業紀念冊留下紀念簽名的一天，同時也是我們故事主角塗神：塗三傑――江湖人稱塗哥一切的開始。 
+ 
+ 台中小吃店對話（標註） 
+ 塗哥人在台中小吃店，同行（姓同名行，塗哥師傅）指著電視畫面說台北爆發學運太陽花學運，塗哥說我不懂政治，等一下我們去買太陽餅。我聽鋒兄說彰化盛產向日葵，下個月我們去彰化農場踏青，同行職業病發作對農場施工頭頭是道。 
+ 
+ 鋒兄歷史小學堂（標註） 
+ 鋒兄歷史小學堂林學徒說AI機器人有可能取代水電工，我好焦慮喔，塗哥說可是我聽鋒兄說那是未來不是現在，先作好手邊的工作，當一天和尚撞一天鐘。 
+ 
+ 副市長同學（標註） 
+ 塗哥說我有個同學在台北當副市長，同行回你是說鋒兄嗎，鋒兄？！怎麼可能，鋒兄現在是青木瓜手搖飲區域經理，副市長是黃馨鋒，同行說我還以為是鋒兄，一樣名字有個鋒字。對了你那同學不出來選台北市長嗎？塗哥說我同學寫了一本有關於水電工的書，他說銷售量超過兩百五十萬冊，才有出來選的本錢。 
+ 
+ 動物園快閃（標註） 
+ 有人在台北動物園快閃唱動物園不得了了，蠟筆小新？！塗哥說我不懂日語，等一下我們去KTV唱快樂天堂。 
+ 
+ 電視劇熱潮（標註） 
+ 塗董，最近的電視劇很火你有在看嗎，水電情？！聽說原型人物是塗偉傑，塗偉傑？！我叫塗三傑，姓名只差一個字，說不定是我遠房親戚，真的假的，你們塗家壟斷水電這一行業太誇張了吧。 
+ 
+ 現象級成功（標註） 
+ 塗董，你知道塗偉傑紅到被寫進高職國文課本這件事嗎，哇操，塗偉傑肯定是我遠房親戚，傻眼貓咪，我看鋒兄家的貓都會傻眼現象級水電工塗哥人物專訪。 
+ 
+ 衍生作品帝國（標註） 
+ 塗神衍生作品王子高職國文課本 水電電視劇 愛上水電工 主題曲鋒兄作詞 小說名場景 青木瓜四木飲冠名播出 鋒兄和塗哥喝青木瓜四木飲一年份喝到吐電影 水電工大老闆。 
+ 
+ 學術引用（標註） 
+ 學術引用 社會學系碩士論文引用 塗神水電王子 二十一世紀前期文學作品所呈現的台灣社會國文學系博士論文引用 塗神水電王子 台灣政治人物代表作家及其作品研究。 
+ 
  財富成就（標註） 
  塗哥水電王子爆紅 鋒兄賺三百三十三億 塗哥賺三億` 
   }
@@ -456,5 +664,14 @@ const closeModal = () => {
 .modal-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.no-audio-message {
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
 }
 </style>
