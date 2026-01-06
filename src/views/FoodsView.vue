@@ -121,7 +121,7 @@ const closeModal = () => {
 
 const fetchData = async () => {
   try {
-    const query = new Parse.Query('Food');
+    const query = new Parse.Query('food');
     query.descending('todate');
     foods.value = await query.find();
   } catch (error) {
@@ -135,7 +135,7 @@ const saveFood = async () => {
     if (editingItem.value) {
       food = editingItem.value;
     } else {
-      const Food = Parse.Object.extend('Food');
+      const Food = Parse.Object.extend('food');
       food = new Food();
     }
     
