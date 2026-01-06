@@ -38,8 +38,13 @@ defineEmits(['close'])
   padding: 24px 16px;
   z-index: 1000;
   transition: transform 0.3s ease;
+  transform: translateX(-100%);
 }
-/* ... existing styles ... */
+.sidebar.open {
+  transform: translateX(0);
+  box-shadow: 2px 0 8px rgba(0,0,0,0.2);
+}
+
 .brand {
   display: flex;
   align-items: center;
@@ -79,14 +84,5 @@ defineEmits(['close'])
 .icon {
   width: 22px;
   text-align: center;
-}
-@media (max-width: 900px) {
-  .sidebar {
-    transform: translateX(-100%);
-  }
-  .sidebar.open {
-    transform: translateX(0);
-    box-shadow: 2px 0 8px rgba(0,0,0,0.2);
-  }
 }
 </style>
