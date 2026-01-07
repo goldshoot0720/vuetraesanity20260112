@@ -86,9 +86,9 @@ const foodFile = ref(null);
 const subscriptionFile = ref(null);
 
 onMounted(() => {
-  appId.value = localStorage.getItem('custom_app_id') || import.meta.env.VITE_APP_ID || 'D9ePfYNRGVu2JZaYbPeGW8ECfLKxIjt7ONXHjH5L';
-  jsKeys.value = localStorage.getItem('custom_js_key') || import.meta.env.VITE_JS_KEYS || 'yT9NcJJY2YLIAR3mZ3Tx8R57Chf9kPZz1HX4uAlS';
-  masterKeys.value = localStorage.getItem('custom_master_key') || import.meta.env.VITE_MASTER_KEYS || 'NAHLbqx2lTsOqJJxulcFNt66N4r7TZ5tZceE1WIc';
+  appId.value = localStorage.getItem('custom_app_id') || import.meta.env.VITE_APP_ID || '';
+  jsKeys.value = localStorage.getItem('custom_js_key') || import.meta.env.VITE_JS_KEYS || '';
+  masterKeys.value = localStorage.getItem('custom_master_key') || import.meta.env.VITE_MASTER_KEYS || '';
 });
 
 const saveSettings = () => {
