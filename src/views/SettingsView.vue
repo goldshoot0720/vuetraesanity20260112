@@ -2,101 +2,149 @@
   <section class="page">
     <div class="header">
       <div class="badge">⚙️</div>
-      <h2>系統設定</h2>
+      <h2>Sanity 設定</h2>
     </div>
 
     <div class="content">
       <div class="card">
-        <h3>應用程式金鑰</h3>
-        <p class="desc">請妥善保存您的金鑰資訊，切勿洩漏給未授權的人員。</p>
+        <h3>Sanity 連線資訊</h3>
+        <p class="desc">請輸入您的 Sanity 專案資訊以連結至 CMS。</p>
         
         <div class="form-group">
-          <label>Back4app App ID</label>
+          <label>Project ID</label>
           <div class="input-wrapper">
-            <input type="text" v-model="appId" placeholder="未設定" />
-            <button class="copy-btn" @click="copyToClipboard(appId)">複製</button>
+            <input type="text" v-model="projectId" placeholder="例如: zp7mbokg" />
+            <button class="copy-btn" @click="copyToClipboard(projectId)">複製</button>
           </div>
         </div>
 
         <div class="form-group">
-          <label>JavaScript Keys</label>
+          <label>Dataset</label>
           <div class="input-wrapper">
-            <input type="text" v-model="jsKeys" placeholder="未設定" />
-            <button class="copy-btn" @click="copyToClipboard(jsKeys)">複製</button>
+            <input type="text" v-model="dataset" placeholder="例如: production" />
+            <button class="copy-btn" @click="copyToClipboard(dataset)">複製</button>
           </div>
         </div>
 
         <div class="form-group">
-          <label>Master Keys</label>
+          <label>API Token (Optional)</label>
           <div class="input-wrapper">
-            <input type="text" v-model="masterKeys" placeholder="未設定" />
-            <button class="copy-btn" @click="copyToClipboard(masterKeys)">複製</button>
+            <input type="password" v-model="token" placeholder="若需寫入權限請填寫" />
+            <button class="copy-btn" @click="copyToClipboard(token)">複製</button>
+          </div>
+          <p class="help-text">需具備寫入權限 (Editor 或更高) 才能進行資料修改。</p>
+        </div>
+
+        <div class="form-group">
+          <label>API Version</label>
+          <div class="input-wrapper">
+            <input type="text" v-model="apiVersion" placeholder="YYYY-MM-DD" />
+            <button class="copy-btn" @click="copyToClipboard(apiVersion)">複製</button>
           </div>
         </div>
 
         <div class="actions">
+          <button class="btn secondary" @click="testConnection" :disabled="isTesting">
+            {{ isTesting ? '測試中...' : '測試 API 連線' }}
+          </button>
           <button class="btn primary" @click="saveSettings">儲存設定</button>
         </div>
       </div>
 
       <div class="card" style="margin-top: 20px;">
-        <h3>資料結構管理</h3>
-        <p class="desc">管理 Back4app 資料庫結構。</p>
-        
-        <div class="actions start">
-          <button class="btn" @click="initFoodSchema">初始化 Food Class Schema</button>
-          <button class="btn" @click="initSubscriptionSchema">初始化 Subscription Class Schema</button>
-        </div>
-      </div>
-
-      <div class="card" style="margin-top: 20px;">
         <h3>資料匯出</h3>
-        <p class="desc">將資料匯出為 CSV 檔案以進行備份或分析。</p>
-        
+        <p class="desc">匯出目前系統中的資料為 CSV 格式。</p>
         <div class="actions start">
-          <button class="btn" @click="exportFoodCSV">匯出 back4appfood.csv</button>
-          <button class="btn" @click="exportSubscriptionCSV">匯出 back4appsubscription.csv</button>
+          <button class="btn secondary" @click="exportFoodCSV" :disabled="isExporting">
+            {{ isExporting ? '匯出中...' : '匯出食品資料 (CSV)' }}
+          </button>
+          <button class="btn secondary" @click="exportSubscriptionCSV" :disabled="isExporting">
+            {{ isExporting ? '匯出中...' : '匯出訂閱資料 (CSV)' }}
+          </button>
         </div>
       </div>
 
-      <div class="card" style="margin-top: 20px;">
-        <h3>資料匯入</h3>
-        <p class="desc">根據匯出的 CSV 格式匯入資料至 Back4app。</p>
-        
-        <div class="actions start">
-          <input type="file" ref="foodFile" accept=".csv" style="display: none" @change="handleFoodImport">
-          <button class="btn" @click="$refs.foodFile.click()">匯入 Food CSV</button>
-          
-          <input type="file" ref="subscriptionFile" accept=".csv" style="display: none" @change="handleSubscriptionImport">
-          <button class="btn" @click="$refs.subscriptionFile.click()">匯入 Subscription CSV</button>
-        </div>
-      </div>
     </div>
   </section>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import Parse from '../services/parse';
+import { createClient } from '@sanity/client';
+import client from '../services/sanity';
 
-const appId = ref('');
-const jsKeys = ref('');
-const masterKeys = ref('');
-const foodFile = ref(null);
-const subscriptionFile = ref(null);
+const projectId = ref('');
+const dataset = ref('');
+const token = ref('');
+const apiVersion = ref('');
+const isTesting = ref(false);
+const isExporting = ref(false);
 
 onMounted(() => {
-  appId.value = localStorage.getItem('custom_app_id') || import.meta.env.VITE_APP_ID || 'D9ePfYNRGVu2JZaYbPeGW8ECfLKxIjt7ONXHjH5L';
-  jsKeys.value = localStorage.getItem('custom_js_key') || import.meta.env.VITE_JS_KEYS || 'yT9NcJJY2YLIAR3mZ3Tx8R57Chf9kPZz1HX4uAlS';
-  masterKeys.value = localStorage.getItem('custom_master_key') || import.meta.env.VITE_MASTER_KEYS || 'NAHLbqx2lTsOqJJxulcFNt66N4r7TZ5tZceE1WIc';
+  projectId.value = localStorage.getItem('sanity_project_id') || import.meta.env.VITE_SANITY_PROJECT_ID || '';
+  dataset.value = localStorage.getItem('sanity_dataset') || import.meta.env.VITE_SANITY_DATASET || 'production';
+  token.value = localStorage.getItem('sanity_token') || import.meta.env.VITE_SANITY_TOKEN || '';
+  apiVersion.value = localStorage.getItem('sanity_api_version') || import.meta.env.VITE_SANITY_API_VERSION || '2023-05-03';
 });
 
 const saveSettings = () => {
-  localStorage.setItem('custom_app_id', appId.value);
-  localStorage.setItem('custom_js_key', jsKeys.value);
-  localStorage.setItem('custom_master_key', masterKeys.value);
+  localStorage.setItem('sanity_project_id', projectId.value);
+  localStorage.setItem('sanity_dataset', dataset.value);
+  localStorage.setItem('sanity_token', token.value);
+  localStorage.setItem('sanity_api_version', apiVersion.value);
   alert('設定已儲存，頁面將重新載入以生效。');
   window.location.reload();
+};
+
+const testConnection = async () => {
+  if (!projectId.value) {
+    alert('請先輸入 Project ID');
+    return;
+  }
+
+  isTesting.value = true;
+  try {
+    const tempClient = createClient({
+      projectId: projectId.value,
+      dataset: dataset.value || 'production',
+      useCdn: true,
+      apiVersion: apiVersion.value || '2023-05-03',
+      token: token.value || undefined,
+      ignoreBrowserTokenWarning: true
+    });
+
+    // 1. Basic Connectivity Test
+    await tempClient.fetch('count(*[0...1])');
+    
+    let message = '連線成功！您的 Sanity 設定正確。';
+
+    // 2. Token Validation (if provided)
+    if (token.value) {
+      try {
+        // Try to fetch current user info. This requires a valid token.
+        // Note: @sanity/client request method usually handles auth automatically if token is provided.
+        // The endpoint /users/me returns info about the token bearer.
+        const user = await tempClient.request({uri: '/users/me'});
+        
+        const userName = user.name || user.email || user.id || 'Unknown User';
+        message += `\n\n✅ Token 驗證成功\n使用者：${userName}\n權限：${user.role || '已授權'}`;
+      } catch (tokenError) {
+        console.warn('Token validation failed:', tokenError);
+        message += '\n\n⚠️ 注意：基本連線成功，但 Token 驗證失敗。';
+        message += '\n可能原因：Token 無效、權限不足，或是公開資料集允許無 Token 存取。';
+        message += '\n若您需要寫入權限，請檢查 Token 是否正確。';
+      }
+    } else {
+      message += '\n\nℹ️ 未設定 Token，僅測試公開讀取權限。';
+    }
+    
+    alert(message);
+  } catch (error) {
+    console.error('Connection test failed:', error);
+    alert('連線失敗：' + (error.message || '未知錯誤'));
+  } finally {
+    isTesting.value = false;
+  }
 };
 
 const copyToClipboard = (text) => {
@@ -105,378 +153,88 @@ const copyToClipboard = (text) => {
   }).catch(() => {})
 }
 
-const convertToCSV = (objArray) => {
-  const array = typeof objArray !== 'object' ? JSON.parse(objArray) : objArray;
-  let str = '';
-  
-  if (array.length === 0) return '';
-
-  // Get headers
-  const headers = Object.keys(array[0]).join(',');
-  str += headers + '\r\n';
-
-  for (let i = 0; i < array.length; i++) {
-    let line = '';
-    for (const index in array[i]) {
-      if (line !== '') line += ',';
-      
-      let item = array[i][index];
-      
-      // Handle null/undefined
-      if (item === null || item === undefined) {
-        item = '';
-      }
-      
-      // Handle strings containing commas or newlines
-      if (typeof item === 'string') {
-        if (item.includes(',') || item.includes('\n') || item.includes('"')) {
-          item = '"' + item.replace(/"/g, '""') + '"';
-        }
-      } else if (item instanceof Date) {
-        item = item.toISOString();
-      }
-      
-      line += item;
-    }
-    str += line + '\r\n';
-  }
-  return str;
+// Helper to download CSV
+const downloadCSV = (content, filename) => {
+  const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
-const downloadCSV = (csvStr, fileName) => {
-  const blob = new Blob([csvStr], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement('a');
-  if (link.download !== undefined) {
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', fileName);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+// Escape CSV field
+const escapeCSV = (field) => {
+  if (field === null || field === undefined) return '';
+  const stringField = String(field);
+  if (stringField.includes(',') || stringField.includes('"') || stringField.includes('\n')) {
+    return `"${stringField.replace(/"/g, '""')}"`;
   }
+  return stringField;
 };
 
 const exportFoodCSV = async () => {
+  isExporting.value = true;
   try {
-    const Food = Parse.Object.extend('food');
-    const query = new Parse.Query(Food);
-    query.limit(1000);
-    const results = await query.find();
+    const data = await client.fetch('*[_type == "food"] | order(todate desc)');
     
-    const data = results.map(item => ({
-      objectId: item.id,
-      name: item.get('name'),
-      amount: item.get('amount'),
-      price: item.get('price'),
-      shop: item.get('shop'),
-      todate: item.get('todate') ? item.get('todate').toISOString() : '',
-      photo: item.get('photo'),
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt
-    }));
-
-    const csv = convertToCSV(data);
-    downloadCSV(csv, 'back4appfood.csv');
+    // CSV Header
+    const headers = ['name', 'amount', 'price', 'shop', 'todate', 'photourl'];
+    let csvContent = headers.join(',') + '\n';
+    
+    // CSV Rows
+    data.forEach(item => {
+      const row = [
+        escapeCSV(item.name),
+        escapeCSV(item.amount),
+        escapeCSV(item.price),
+        escapeCSV(item.shop),
+        escapeCSV(item.todate),
+        escapeCSV(item.photourl)
+      ];
+      csvContent += row.join(',') + '\n';
+    });
+    
+    downloadCSV(csvContent, 'sanityfood.csv');
   } catch (error) {
-    console.error('Error exporting food CSV:', error);
+    console.error('Export failed:', error);
     alert('匯出失敗：' + error.message);
+  } finally {
+    isExporting.value = false;
   }
 };
 
 const exportSubscriptionCSV = async () => {
+  isExporting.value = true;
   try {
-    const Subscription = Parse.Object.extend('subscription');
-    const query = new Parse.Query(Subscription);
-    query.limit(1000);
-    const results = await query.find();
+    const data = await client.fetch('*[_type == "subscription"] | order(nextdate asc)');
     
-    const data = results.map(item => ({
-      objectId: item.id,
-      name: item.get('name'),
-      price: item.get('price'),
-      nextdate: item.get('nextdate') ? item.get('nextdate').toISOString() : '',
-      site: item.get('site'),
-      note: item.get('note'),
-      createdAt: item.createdAt,
-      updatedAt: item.updatedAt
-    }));
-
-    const csv = convertToCSV(data);
-    downloadCSV(csv, 'back4appsubscription.csv');
+    // CSV Header
+    const headers = ['name', 'site', 'price', 'nextdate', 'note', 'account'];
+    let csvContent = headers.join(',') + '\n';
+    
+    // CSV Rows
+    data.forEach(item => {
+      const row = [
+        escapeCSV(item.name),
+        escapeCSV(item.site),
+        escapeCSV(item.price),
+        escapeCSV(item.nextdate),
+        escapeCSV(item.note),
+        escapeCSV(item.account)
+      ];
+      csvContent += row.join(',') + '\n';
+    });
+    
+    downloadCSV(csvContent, 'sanitysubscription.csv');
   } catch (error) {
-    console.error('Error exporting subscription CSV:', error);
+    console.error('Export failed:', error);
     alert('匯出失敗：' + error.message);
-  }
-};
-
-const parseCSV = (text) => {
-  const lines = text.split(/\r\n|\n/);
-  const result = [];
-  
-  // Basic CSV parser
-  for (let i = 1; i < lines.length; i++) { // Skip header
-    const line = lines[i].trim();
-    if (!line) continue;
-    
-    const row = [];
-    let current = '';
-    let inQuote = false;
-    
-    for (let j = 0; j < line.length; j++) {
-      const char = line[j];
-      
-      if (char === '"') {
-        if (inQuote && line[j+1] === '"') {
-          // Double quote inside quote
-          current += '"';
-          j++;
-        } else {
-          inQuote = !inQuote;
-        }
-      } else if (char === ',' && !inQuote) {
-        row.push(current);
-        current = '';
-      } else {
-        current += char;
-      }
-    }
-    row.push(current);
-    result.push(row);
-  }
-  return result;
-};
-
-const handleFoodImport = (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    const text = e.target.result;
-    await importFoodData(text);
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-};
-
-const importFoodData = async (csvText) => {
-  try {
-    const rows = parseCSV(csvText);
-    const Food = Parse.Object.extend('food');
-    let count = 0;
-
-    for (const row of rows) {
-      // Expected: objectId, name, amount, price, shop, todate, photo, createdAt, updatedAt
-      // Indices: 0, 1, 2, 3, 4, 5, 6, 7, 8
-      if (row.length < 2) continue; 
-
-      const food = new Food();
-      food.set('name', row[1]);
-      food.set('amount', Number(row[2]) || 0);
-      food.set('price', Number(row[3]) || 0);
-      food.set('shop', row[4]);
-      if (row[5]) food.set('todate', new Date(row[5]));
-      food.set('photo', row[6]);
-      
-      await food.save();
-      count++;
-    }
-    alert(`成功匯入 ${count} 筆食品資料！`);
-  } catch (error) {
-    console.error('Import error:', error);
-    alert('匯入失敗：' + error.message);
-  }
-};
-
-const handleSubscriptionImport = (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = async (e) => {
-    const text = e.target.result;
-    await importSubscriptionData(text);
-  };
-  reader.readAsText(file);
-  event.target.value = '';
-};
-
-const importSubscriptionData = async (csvText) => {
-  try {
-    const rows = parseCSV(csvText);
-    const Subscription = Parse.Object.extend('subscription');
-    let count = 0;
-
-    for (const row of rows) {
-      // Expected: objectId, name, price, nextdate, site, note, createdAt, updatedAt
-      // Indices: 0, 1, 2, 3, 4, 5, 6, 7
-      if (row.length < 2) continue;
-
-      const sub = new Subscription();
-      sub.set('name', row[1]);
-      sub.set('price', Number(row[2]) || 0);
-      if (row[3]) sub.set('nextdate', new Date(row[3]));
-      sub.set('site', row[4]);
-      sub.set('note', row[5]);
-      
-      await sub.save();
-      count++;
-    }
-    alert(`成功匯入 ${count} 筆訂閱資料！`);
-  } catch (error) {
-    console.error('Import error:', error);
-    alert('匯入失敗：' + error.message);
-  }
-};
-
-const initFoodSchema = async () => {
-  if (!appId.value || !masterKeys.value) {
-    alert('請先設定 App ID 和 Master Key');
-    return;
-  }
-
-  const schema = {
-    className: "food",
-    fields: {
-      name: { type: "String", required: false },
-      amount: { type: "Number", required: false },
-      price: { type: "Number", required: false },
-      shop: { type: "String", required: false },
-      photo: { type: "String", required: false },
-      photohash: { type: "String", required: false },
-      todate: { type: "Date", required: false }
-    },
-    classLevelPermissions: {
-      find: { "*": true },
-      count: { "*": true },
-      get: { "*": true },
-      create: { "*": true },
-      update: { "*": true },
-      delete: { "*": true },
-      addField: { "*": true },
-      protectedFields: { "*": [] }
-    }
-  };
-
-  try {
-    // 1. Check if schema exists
-    const checkResponse = await fetch('https://parseapi.back4app.com/schemas/food', {
-      method: 'GET',
-      headers: {
-        'X-Parse-Application-Id': appId.value,
-        'X-Parse-Master-Key': masterKeys.value,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (checkResponse.ok) {
-      alert('Food Class 已存在，無需新增。');
-      return;
-    } else if (checkResponse.status !== 404 && checkResponse.status !== 400) {
-        // 400 or 404 usually means not found or bad request (if class name invalid), but 404 is typical for schema not found.
-        // However, Parse Server might return 200 with empty list if listing schemas, but for specific schema it should be 404 or error.
-        // Let's proceed to create if it's 404. If it's other error, throw.
-        // Actually, Parse response for non-existent schema might vary. 
-        // Let's assume if it fails, we try to create.
-        const errorData = await checkResponse.json();
-        console.warn('Check schema failed (might not exist):', errorData);
-    }
-
-    // 2. Create Schema
-    const createResponse = await fetch('https://parseapi.back4app.com/schemas/food', {
-      method: 'POST',
-      headers: {
-        'X-Parse-Application-Id': appId.value,
-        'X-Parse-Master-Key': masterKeys.value,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(schema)
-    });
-
-    if (createResponse.ok) {
-      alert('Food Class 初始化成功！');
-    } else {
-      const errorData = await createResponse.json();
-      console.error('Create schema error:', errorData);
-      alert('初始化失敗：' + (errorData.error || '未知錯誤'));
-    }
-
-  } catch (error) {
-    console.error('Init schema error:', error);
-    alert('執行錯誤：' + error.message);
-  }
-};
-
-const initSubscriptionSchema = async () => {
-  if (!appId.value || !masterKeys.value) {
-    alert('請先設定 App ID 和 Master Key');
-    return;
-  }
-
-  const schema = {
-    className: "subscription",
-    fields: {
-      name: { type: "String", required: true },
-      price: { type: "Number", required: false },
-      nextdate: { type: "Date", required: false },
-      site: { type: "String", required: false },
-      account: { type: "String", required: false },
-      note: { type: "String", required: false }
-    },
-    classLevelPermissions: {
-      find: { "*": true },
-      count: { "*": true },
-      get: { "*": true },
-      create: { "*": true },
-      update: { "*": true },
-      delete: { "*": true },
-      addField: { "*": true },
-      protectedFields: { "*": [] }
-    }
-  };
-
-  try {
-    // 1. Check if schema exists
-    const checkResponse = await fetch('https://parseapi.back4app.com/schemas/subscription', {
-      method: 'GET',
-      headers: {
-        'X-Parse-Application-Id': appId.value,
-        'X-Parse-Master-Key': masterKeys.value,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (checkResponse.ok) {
-      alert('Subscription Class 已存在，無需新增。');
-      return;
-    } else if (checkResponse.status !== 404 && checkResponse.status !== 400) {
-        const errorData = await checkResponse.json();
-        console.warn('Check schema failed (might not exist):', errorData);
-    }
-
-    // 2. Create Schema
-    const createResponse = await fetch('https://parseapi.back4app.com/schemas/subscription', {
-      method: 'POST',
-      headers: {
-        'X-Parse-Application-Id': appId.value,
-        'X-Parse-Master-Key': masterKeys.value,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(schema)
-    });
-
-    if (createResponse.ok) {
-      alert('Subscription Class 初始化成功！');
-    } else {
-      const errorData = await createResponse.json();
-      console.error('Create schema error:', errorData);
-      alert('初始化失敗：' + (errorData.error || '未知錯誤'));
-    }
-
-  } catch (error) {
-    console.error('Init schema error:', error);
-    alert('執行錯誤：' + error.message);
+  } finally {
+    isExporting.value = false;
   }
 };
 </script>
@@ -504,8 +262,16 @@ const initSubscriptionSchema = async () => {
 .btn:hover {
   opacity: 0.9;
 }
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 .primary {
   background: #ff5a5f;
+  color: #fff;
+}
+.secondary {
+  background: rgba(255, 255, 255, 0.2);
   color: #fff;
 }
 .page {
@@ -554,6 +320,11 @@ label {
   margin-bottom: 8px;
   font-weight: 500;
   opacity: 0.9;
+}
+.help-text {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin-top: 6px;
 }
 .input-wrapper {
   display: flex;

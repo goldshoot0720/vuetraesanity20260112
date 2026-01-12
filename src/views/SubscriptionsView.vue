@@ -13,17 +13,18 @@
       <button class="btn">🔍 搜尋</button>
     </div>
     <div class="list">
-      <div class="item" v-for="item in subscriptions" :key="item.id">
+      <div class="item" v-for="item in subscriptions" :key="item._id">
         <div class="main-info">
-          <div class="name">{{ item.get('name') || '未命名' }}</div>
-          <div class="site-link" v-if="item.get('site')">
-            <a :href="item.get('site')" target="_blank" rel="noopener">🌐 前往網站</a>
+          <div class="name">{{ item.name || '未命名' }}</div>
+          <div class="site-link" v-if="item.site">
+            <a :href="item.site" target="_blank" rel="noopener">🌐 前往網站</a>
           </div>
         </div>
         <div class="meta">
-          <div class="price">價格：${{ item.get('price') || 0 }}</div>
-          <div class="date">下期：{{ item.get('nextdate') ? new Date(item.get('nextdate')).toLocaleDateString() : '未設定' }}</div>
-          <div class="note" v-if="item.get('note')">備註：{{ item.get('note') }}</div>
+          <div class="price">價格：${{ item.price || 0 }}</div>
+          <div class="date">下期：{{ item.nextdate ? new Date(item.nextdate).toLocaleDateString() : '未設定' }}</div>
+          <div class="note" v-if="item.account">帳號：{{ item.account }}</div>
+          <div class="note" v-if="item.note">備註：{{ item.note }}</div>
         </div>
         <div class="ops">
           <button class="btn" @click="openModal(item)">編輯</button>
@@ -56,6 +57,10 @@
           <input v-model="formData.site" placeholder="https://..." />
         </div>
         <div class="form-group">
+          <label>帳號</label>
+          <input v-model="formData.account" placeholder="帳號資訊" />
+        </div>
+        <div class="form-group">
           <label>備註</label>
           <input v-model="formData.note" placeholder="備註事項" />
         </div>
@@ -70,7 +75,7 @@
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
-import Parse from '../services/parse';
+import client from '../services/sanity';
 
 const subscriptions = ref([]);
 const showModal = ref(false);
@@ -80,19 +85,20 @@ const formData = reactive({
   price: 0,
   nextdate: '',
   site: '',
-  note: ''
+  note: '',
+  account: ''
 });
 
 const openModal = (item = null) => {
   editingItem.value = item;
   if (item) {
-    formData.name = item.get('name');
-    formData.price = item.get('price');
+    formData.name = item.name;
+    formData.price = item.price;
     // Format date for input[type="date"]
-    const date = item.get('nextdate');
-    formData.nextdate = date ? new Date(date).toISOString().split('T')[0] : '';
-    formData.site = item.get('site');
-    formData.note = item.get('note');
+    formData.nextdate = item.nextdate ? item.nextdate.split('T')[0] : '';
+    formData.site = item.site;
+    formData.note = item.note;
+    formData.account = item.account;
   } else {
     // Reset form
     formData.name = '';
@@ -100,6 +106,7 @@ const openModal = (item = null) => {
     formData.nextdate = '';
     formData.site = '';
     formData.note = '';
+    formData.account = '';
   }
   showModal.value = true;
 };
@@ -111,24 +118,22 @@ const closeModal = () => {
 
 const saveSubscription = async () => {
   try {
-    const Subscriptions = Parse.Object.extend('subscription');
-    let subscription;
+    const doc = {
+      _type: 'subscription',
+      name: formData.name,
+      price: Number(formData.price),
+      nextdate: formData.nextdate || null,
+      site: formData.site,
+      note: formData.note,
+      account: formData.account
+    };
 
     if (editingItem.value) {
-      subscription = editingItem.value;
+      await client.patch(editingItem.value._id).set(doc).commit();
     } else {
-      subscription = new Subscriptions();
+      await client.create(doc);
     }
 
-    subscription.set('name', formData.name);
-    subscription.set('price', Number(formData.price));
-    if (formData.nextdate) {
-      subscription.set('nextdate', new Date(formData.nextdate));
-    }
-    subscription.set('site', formData.site);
-    subscription.set('note', formData.note);
-
-    await subscription.save();
     closeModal();
     fetchData(); // Refresh list
   } catch (error) {
@@ -141,7 +146,7 @@ const deleteSubscription = async (item) => {
   if (!confirm('確定要刪除此訂閱嗎？')) return;
   
   try {
-    await item.destroy();
+    await client.delete(item._id);
     fetchData(); // Refresh list
   } catch (error) {
     console.error('Error deleting subscription:', error);
@@ -151,12 +156,8 @@ const deleteSubscription = async (item) => {
 
 const fetchData = async () => {
   try {
-    // 根據截圖，Class 名稱是小寫的 'subscription'
-    const Subscriptions = Parse.Object.extend('subscription');
-    const query = new Parse.Query(Subscriptions);
-    query.ascending('nextdate');
-    // 根據截圖欄位：name, nextdate, price, site, note
-    subscriptions.value = await query.find();
+    const query = '*[_type == "subscription"] | order(nextdate asc)';
+    subscriptions.value = await client.fetch(query);
   } catch (error) {
     console.error('Error fetching subscriptions:', error);
   }

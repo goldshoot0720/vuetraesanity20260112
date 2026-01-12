@@ -17,9 +17,9 @@
         <div class="card">
           <div class="card-title">🚀 後端技術</div>
           <ul class="list">
-            <li>Back4app（Parse）</li>
-            <li>資料存放於 Back4app</li>
-            <li>RESTful API + Parse SDK</li>
+            <li>Sanity CMS</li>
+            <li>資料存放於 Sanity Cloud</li>
+            <li>GROQ API + Sanity Client</li>
           </ul>
         </div>
       </div>
@@ -70,7 +70,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import Parse from '../services/parse';
+import client from '../services/sanity';
 
 const subscriptionTotal = ref(0);
 const subscription7 = ref(0);
@@ -96,48 +96,52 @@ const formatDate = (d) => {
 };
 
 const fetchDashboard = async () => {
+  if (!client) {
+    console.warn('Sanity client not initialized');
+    return;
+  }
+
   const now = new Date();
+  
+  // Prepare params for GROQ
+  const params = {
+    now: now.toISOString(),
+    day3: addDays(now, 3).toISOString(),
+    day7: addDays(now, 7).toISOString(),
+    day30: addDays(now, 30).toISOString()
+  };
 
-  const Subscription = Parse.Object.extend('subscription');
-  const Food = Parse.Object.extend('food');
+  // Using a single query to fetch all stats efficiently
+  const query = `{
+    "subTotal": count(*[_type == "subscription"]),
+    "sub7": count(*[_type == "subscription" && nextdate >= $now && nextdate <= $day7]),
+    "sub7Date": *[_type == "subscription" && nextdate >= $now && nextdate <= $day7] | order(nextdate asc)[0].nextdate,
+    "sub30": count(*[_type == "subscription" && nextdate >= $now && nextdate <= $day30]),
+    "sub30Date": *[_type == "subscription" && nextdate >= $now && nextdate <= $day30] | order(nextdate asc)[0].nextdate,
+    "foodTotal": count(*[_type == "food"]),
+    "food3": count(*[_type == "food" && todate >= $now && todate <= $day3]),
+    "food3Date": *[_type == "food" && todate >= $now && todate <= $day3] | order(todate asc)[0].todate,
+    "food7": count(*[_type == "food" && todate >= $now && todate <= $day7]),
+    "food7Date": *[_type == "food" && todate >= $now && todate <= $day7] | order(todate asc)[0].todate
+  }`;
 
-  const subTotalQuery = new Parse.Query(Subscription);
-  subscriptionTotal.value = await subTotalQuery.count();
-
-  const sub7Query = new Parse.Query(Subscription);
-  sub7Query.greaterThanOrEqualTo('nextdate', now);
-  sub7Query.lessThanOrEqualTo('nextdate', addDays(now, 7));
-  subscription7.value = await sub7Query.count();
-  sub7Query.ascending('nextdate');
-  const s7 = await sub7Query.first();
-  subscription7Date.value = s7 ? formatDate(s7.get('nextdate')) : '-';
-
-  const sub30Query = new Parse.Query(Subscription);
-  sub30Query.greaterThanOrEqualTo('nextdate', now);
-  sub30Query.lessThanOrEqualTo('nextdate', addDays(now, 30));
-  subscription30.value = await sub30Query.count();
-  sub30Query.ascending('nextdate');
-  const s30 = await sub30Query.first();
-  subscription30Date.value = s30 ? formatDate(s30.get('nextdate')) : '-';
-
-  const foodTotalQuery = new Parse.Query(Food);
-  foodTotal.value = await foodTotalQuery.count();
-
-  const food3Query = new Parse.Query(Food);
-  food3Query.greaterThanOrEqualTo('todate', now);
-  food3Query.lessThanOrEqualTo('todate', addDays(now, 3));
-  food3.value = await food3Query.count();
-  food3Query.ascending('todate');
-  const f3 = await food3Query.first();
-  food3Date.value = f3 ? formatDate(f3.get('todate')) : '-';
-
-  const food7Query = new Parse.Query(Food);
-  food7Query.greaterThanOrEqualTo('todate', now);
-  food7Query.lessThanOrEqualTo('todate', addDays(now, 7));
-  food7.value = await food7Query.count();
-  food7Query.ascending('todate');
-  const f7 = await food7Query.first();
-  food7Date.value = f7 ? formatDate(f7.get('todate')) : '-';
+  try {
+    const result = await client.fetch(query, params);
+    
+    subscriptionTotal.value = result.subTotal;
+    subscription7.value = result.sub7;
+    subscription7Date.value = formatDate(result.sub7Date);
+    subscription30.value = result.sub30;
+    subscription30Date.value = formatDate(result.sub30Date);
+    
+    foodTotal.value = result.foodTotal;
+    food3.value = result.food3;
+    food3Date.value = formatDate(result.food3Date);
+    food7.value = result.food7;
+    food7Date.value = formatDate(result.food7Date);
+  } catch (error) {
+    console.error('Failed to fetch dashboard stats:', error);
+  }
 };
 
 onMounted(() => {

@@ -13,19 +13,19 @@
       <button class="btn">🔍 搜尋</button>
     </div>
     <div class="cards">
-      <div class="card" v-for="item in foods" :key="item.id">
-        <div class="thumb food" :style="item.get('photo') ? { backgroundImage: `url(${item.get('photo')})` } : {}"></div>
+      <div class="card" v-for="item in foods" :key="item._id">
+        <div class="thumb food" :style="item.photourl ? { backgroundImage: `url(${item.photourl})` } : {}"></div>
         <div class="meta">
-          <div class="name">{{ item.get('name') || '未命名' }}</div>
+          <div class="name">{{ item.name || '未命名' }}</div>
           <div class="info">
-            <span v-if="item.get('shop')" class="shop-tag">🏠 {{ item.get('shop') }}</span>
+            <span v-if="item.shop" class="shop-tag">🏠 {{ item.shop }}</span>
             <div class="details">
-              <span>數量：{{ item.get('amount') || 0 }}</span>
-              <span>價格：${{ (item.get('price') || 0).toLocaleString() }}</span>
+              <span>數量：{{ item.amount || 0 }}</span>
+              <span>價格：${{ (item.price || 0).toLocaleString() }}</span>
             </div>
-            <div class="expiry" :class="{ expired: isExpired(item.get('todate')), warning: isExpiringSoon(item.get('todate')) }">
-              📅 {{ item.get('todate') ? new Date(item.get('todate')).toLocaleDateString() : '未設定' }}
-              <span v-if="item.get('todate')">({{ getDaysRemaining(item.get('todate')) }})</span>
+            <div class="expiry" :class="{ expired: isExpired(item.todate), warning: isExpiringSoon(item.todate) }">
+              📅 {{ item.todate ? new Date(item.todate).toLocaleDateString() : '未設定' }}
+              <span v-if="item.todate">({{ getDaysRemaining(item.todate) }})</span>
             </div>
           </div>
           <div class="ops">
@@ -65,7 +65,7 @@
         </div>
         <div class="form-group">
           <label>圖片連結</label>
-          <input v-model="formData.photo" placeholder="https://..." />
+          <input v-model="formData.photourl" placeholder="https://..." />
         </div>
         <div class="modal-actions">
           <button class="btn" @click="closeModal">取消</button>
@@ -78,7 +78,7 @@
 
 <script setup>
 import { ref, onMounted, reactive } from 'vue';
-import Parse from '../services/parse';
+import client from '../services/sanity';
 
 const foods = ref([]);
 const showModal = ref(false);
@@ -89,18 +89,18 @@ const formData = reactive({
   price: 0,
   shop: '',
   todate: '',
-  photo: ''
+  photourl: ''
 });
 
 const openModal = (item = null) => {
   editingItem.value = item;
   if (item) {
-    formData.name = item.get('name');
-    formData.amount = item.get('amount');
-    formData.price = item.get('price');
-    formData.shop = item.get('shop');
-    formData.todate = item.get('todate') ? item.get('todate').toISOString().substr(0, 10) : '';
-    formData.photo = item.get('photo');
+    formData.name = item.name;
+    formData.amount = item.amount;
+    formData.price = item.price;
+    formData.shop = item.shop;
+    formData.todate = item.todate ? item.todate.split('T')[0] : '';
+    formData.photourl = item.photourl;
   } else {
     Object.assign(formData, {
       name: '',
@@ -108,7 +108,7 @@ const openModal = (item = null) => {
       price: 0,
       shop: '',
       todate: '',
-      photo: ''
+      photourl: ''
     });
   }
   showModal.value = true;
@@ -121,9 +121,8 @@ const closeModal = () => {
 
 const fetchData = async () => {
   try {
-    const query = new Parse.Query('food');
-    query.descending('todate');
-    foods.value = await query.find();
+    const query = '*[_type == "food"] | order(todate desc)';
+    foods.value = await client.fetch(query);
   } catch (error) {
     console.error('Error fetching foods:', error);
   }
@@ -131,24 +130,22 @@ const fetchData = async () => {
 
 const saveFood = async () => {
   try {
-    let food;
+    const doc = {
+      _type: 'food',
+      name: formData.name,
+      amount: Number(formData.amount),
+      price: Number(formData.price),
+      shop: formData.shop,
+      todate: formData.todate || null,
+      photourl: formData.photourl
+    };
+    
     if (editingItem.value) {
-      food = editingItem.value;
+      await client.patch(editingItem.value._id).set(doc).commit();
     } else {
-      const Food = Parse.Object.extend('food');
-      food = new Food();
+      await client.create(doc);
     }
     
-    food.set('name', formData.name);
-    food.set('amount', formData.amount);
-    food.set('price', formData.price);
-    food.set('shop', formData.shop);
-    if (formData.todate) {
-      food.set('todate', new Date(formData.todate));
-    }
-    food.set('photo', formData.photo);
-    
-    await food.save();
     closeModal();
     fetchData();
   } catch (error) {
@@ -160,7 +157,7 @@ const saveFood = async () => {
 const deleteFood = async (item) => {
   if (!confirm('確定要刪除嗎？')) return;
   try {
-    await item.destroy();
+    await client.delete(item._id);
     fetchData();
   } catch (error) {
     console.error('Error deleting food:', error);
