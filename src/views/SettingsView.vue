@@ -107,7 +107,7 @@ const testConnection = async () => {
     const tempClient = createClient({
       projectId: projectId.value,
       dataset: dataset.value || 'production',
-      useCdn: true,
+      useCdn: false,
       apiVersion: apiVersion.value || '2023-05-03',
       token: token.value || undefined,
       ignoreBrowserTokenWarning: true
