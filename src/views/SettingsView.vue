@@ -64,6 +64,37 @@
         </div>
       </div>
 
+      <div class="card" style="margin-top: 20px;">
+        <h3>資料匯入</h3>
+        <p class="desc">請選擇 CSV 檔案匯入資料至 Sanity。請確保 CSV 欄位名稱與系統相符。</p>
+        
+        <div class="form-group">
+          <label>匯入食品資料 (Food)</label>
+          <div class="input-wrapper">
+            <input type="file" accept=".csv" @change="e => importCSV(e, 'food')" :disabled="isImporting" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>匯入訂閱資料 (Subscription)</label>
+          <div class="input-wrapper">
+            <input type="file" accept=".csv" @change="e => importCSV(e, 'subscription')" :disabled="isImporting" />
+          </div>
+        </div>
+        
+        <p v-if="isImporting" class="status-text">🔄 資料匯入中，請稍候...</p>
+      </div>
+
+      <div class="card" style="margin-top: 20px;">
+        <h3>資料初始化</h3>
+        <p class="desc">若您的 Sanity 資料集為空，可由此自動建立範例資料以供測試。</p>
+        <div class="actions start">
+          <button class="btn secondary" @click="createSampleData" :disabled="isCreating">
+            {{ isCreating ? '建立中...' : '建立範例資料 (Food & Subscription)' }}
+          </button>
+        </div>
+      </div>
+
     </div>
   </section>
 </template>
@@ -79,6 +110,8 @@ const token = ref('');
 const apiVersion = ref('');
 const isTesting = ref(false);
 const isExporting = ref(false);
+const isImporting = ref(false);
+const isCreating = ref(false);
 
 onMounted(() => {
   projectId.value = localStorage.getItem('sanity_project_id') || import.meta.env.VITE_SANITY_PROJECT_ID || '';
@@ -235,6 +268,149 @@ const exportSubscriptionCSV = async () => {
     alert('匯出失敗：' + error.message);
   } finally {
     isExporting.value = false;
+  }
+};
+
+// Helper to parse CSV line handling quotes
+const parseCSVLine = (line) => {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current);
+  return result;
+};
+
+const importCSV = async (event, type) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (!confirm(`確定要匯入 ${file.name} 嗎？\n這將會新增資料至 ${type}。`)) {
+    event.target.value = ''; // Reset input
+    return;
+  }
+
+  isImporting.value = true;
+  const reader = new FileReader();
+
+  reader.onload = async (e) => {
+    try {
+      const text = e.target.result;
+      // Remove BOM if exists
+      const content = text.startsWith('\uFEFF') ? text.slice(1) : text;
+      
+      const lines = content.split(/\r\n|\n/).filter(line => line.trim());
+      if (lines.length < 2) {
+        throw new Error('CSV 檔案內容為空或格式錯誤');
+      }
+
+      const headers = parseCSVLine(lines[0]).map(h => h.trim());
+      const transaction = client.transaction();
+      let count = 0;
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = parseCSVLine(lines[i]);
+        if (values.length !== headers.length) continue;
+
+        const doc = { _type: type };
+        headers.forEach((header, index) => {
+          let value = values[index];
+          
+          // Type conversion based on field name
+          if (['amount', 'price'].includes(header)) {
+            value = value ? Number(value) : 0;
+          } else if (header === 'todate' || header === 'nextdate') {
+            // Ensure date format or null
+            value = value ? value : null;
+          }
+          
+          if (header) doc[header] = value;
+        });
+
+        transaction.create(doc);
+        count++;
+      }
+
+      await transaction.commit();
+      alert(`✅ 成功匯入 ${count} 筆資料！`);
+      
+    } catch (error) {
+      console.error('Import failed:', error);
+      alert('❌ 匯入失敗：' + error.message);
+    } finally {
+      isImporting.value = false;
+      event.target.value = ''; // Reset input
+    }
+  };
+
+  reader.onerror = () => {
+    alert('❌ 讀取檔案失敗');
+    isImporting.value = false;
+    event.target.value = '';
+  };
+
+  reader.readAsText(file);
+};
+
+const createSampleData = async () => {
+  if (!confirm('確定要建立範例資料嗎？這將會在您的 Sanity 資料集中新增一筆 Food 和一筆 Subscription 資料。')) {
+    return;
+  }
+
+  isCreating.value = true;
+  try {
+    // 1. Create Sample Food
+    const foodDoc = {
+      _type: 'food',
+      name: '範例蘋果 (Sample Apple)',
+      amount: 5,
+      price: 100,
+      shop: '全聯',
+      todate: new Date().toISOString().split('T')[0], // Today
+      photourl: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6'
+    };
+
+    // 2. Create Sample Subscription
+    const subDoc = {
+      _type: 'subscription',
+      name: '範例 Netflix (Sample)',
+      site: 'https://www.netflix.com',
+      price: 390,
+      nextdate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // +30 days
+      note: '家庭方案',
+      account: 'test@example.com'
+    };
+
+    // Transaction to ensure both are created or none
+    const transaction = client.transaction()
+      .create(foodDoc)
+      .create(subDoc);
+
+    await transaction.commit();
+    
+    alert('✅ 範例資料建立成功！\n請至「食品管理」與「訂閱管理」頁面查看。');
+  } catch (error) {
+    console.error('Create sample data failed:', error);
+    alert('❌ 建立失敗：' + (error.message || '未知錯誤') + '\n請確認您的 Token 具有寫入權限 (Editor)。');
+  } finally {
+    isCreating.value = false;
   }
 };
 </script>
